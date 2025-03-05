@@ -1,0 +1,2 @@
+gcc -o pong main.c -lSDL2 -lSDL2_ttf
+./pong
