@@ -9,10 +9,11 @@
 #define MY_FONT "./OpenSans.ttf"
 
 bool sdl_init();
-void move_ball(ball_rect);
+void move_ball();
 void check_ball_collision();
 void ia();
-//void player_move();
+void player_move();
+void print_text();
 
 typedef struct {
     int height;
@@ -33,9 +34,6 @@ typedef struct{
 }Ball;
 
 int main(){
-    printf("GUI v0.1\n");
-    printf("window width: %d\n", WINDOW_WIDTH);
-    printf("window height: %d\n", WINDOW_HEIGHT);
 
     bool running = sdl_init();
 
@@ -51,8 +49,6 @@ int main(){
         return 1;
     }
 
-    SDL_Color Black = {0,0,0, 255};
-
     //Player
     Player player;
     player.height = 100;
@@ -60,7 +56,6 @@ int main(){
     player.x = 10;
     player.speed = 12;
     player.score = 0;
-
 
     //CPU
     Player cpu;
@@ -112,7 +107,6 @@ int main(){
         SDL_FillRect(screenSurface, &cpu_rect, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
         //draw ball
-        // Actualiza la posición de la pelota
         move_ball(&ball,&player,&cpu);
         SDL_Rect ball_rect = {ball.y, ball.x, ball.width, ball.height};
         SDL_FillRect(screenSurface, &ball_rect, SDL_MapRGB(screenSurface->format, 0xFF, 0x00, 0x00));
@@ -129,26 +123,26 @@ int main(){
         //player score
         char player_score_text[20];
         sprintf(player_score_text, "%d", player.score);
-        SDL_Surface *playerScoreSurface = TTF_RenderText_Solid(font, player_score_text, Black);
-        SDL_Rect playerScoreTextRect = {WINDOW_WIDTH /2 - 30 ,10,playerScoreSurface->w, playerScoreSurface->h};
-        SDL_BlitSurface(playerScoreSurface, NULL, screenSurface, &playerScoreTextRect);
-        SDL_FreeSurface(playerScoreSurface);
+        print_text(WINDOW_WIDTH /2 - 30, 10, player_score_text, font, screenSurface);
 
         //cpu score
         char cpu_score_text[20];
-        sprintf(cpu_score_text, "%d", cpu.score);
-        SDL_Surface *cpuScoreSurface = TTF_RenderText_Solid(font, cpu_score_text, Black);
-        SDL_Rect cpuScoreTextRect = {WINDOW_WIDTH /2 + 15 ,10,cpuScoreSurface->w, cpuScoreSurface->h};
-        SDL_BlitSurface(cpuScoreSurface, NULL, screenSurface, &cpuScoreTextRect);
-        SDL_FreeSurface(cpuScoreSurface);
-
+        sprintf(cpu_score_text, "%d", cpu.score, font);
+        print_text(WINDOW_WIDTH /2 + 15 ,10, cpu_score_text, font, screenSurface);
 
         //pintar el surface
         SDL_UpdateWindowSurface(window);
         SDL_Delay(10);
     }
-    printf("Player: %d\n CPU: %d", player.score, cpu.score);
     return 1;
+}
+
+void print_text(int x, int y, char *str, TTF_Font *font, SDL_Surface *screenSurface){
+        SDL_Color Black = {0,0,0, 255};
+        SDL_Surface *Surface = TTF_RenderText_Solid(font, str, Black);
+        SDL_Rect TextRect = {x ,y,Surface->w, Surface->h};
+        SDL_BlitSurface(Surface, NULL, screenSurface, &TextRect);
+        SDL_FreeSurface(Surface);
 }
 
 bool sdl_init(){
@@ -220,5 +214,4 @@ void player_move(Player *player, int direction){
             player->x += player->speed;
         }            
     }
-
 }
