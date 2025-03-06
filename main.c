@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 #define offset 10
+#define MY_FONT "./OpenSans.ttf"
 
 bool sdl_init();
 void move_ball(ball_rect);
@@ -40,6 +42,16 @@ int main(){
     //SDL
     SDL_Event event;
     SDL_Surface* screenSurface = NULL;
+
+    //Font
+    TTF_Font* font = TTF_OpenFont(MY_FONT, 24);
+
+    if(!font){
+        printf("Failed to load font %s", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Color Black = {0,0,0, 255};
 
     //Player
     Player player;
@@ -105,10 +117,31 @@ int main(){
         SDL_Rect ball_rect = {ball.y, ball.x, ball.width, ball.height};
         SDL_FillRect(screenSurface, &ball_rect, SDL_MapRGB(screenSurface->format, 0xFF, 0x00, 0x00));
 
+        //separador
+        SDL_Rect separator = {WINDOW_WIDTH /2 -1, 0, 3, WINDOW_HEIGHT};
+        SDL_FillRect(screenSurface, &separator, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
+
         //comprobar colision
         check_ball_collision(&ball, &player);
 
         ia(&cpu, &ball);
+
+        //player score
+        char player_score_text[20];
+        sprintf(player_score_text, "%d", player.score);
+        SDL_Surface *playerScoreSurface = TTF_RenderText_Solid(font, player_score_text, Black);
+        SDL_Rect playerScoreTextRect = {WINDOW_WIDTH /2 - 30 ,10,playerScoreSurface->w, playerScoreSurface->h};
+        SDL_BlitSurface(playerScoreSurface, NULL, screenSurface, &playerScoreTextRect);
+        SDL_FreeSurface(playerScoreSurface);
+
+        //cpu score
+        char cpu_score_text[20];
+        sprintf(cpu_score_text, "%d", cpu.score);
+        SDL_Surface *cpuScoreSurface = TTF_RenderText_Solid(font, cpu_score_text, Black);
+        SDL_Rect cpuScoreTextRect = {WINDOW_WIDTH /2 + 15 ,10,cpuScoreSurface->w, cpuScoreSurface->h};
+        SDL_BlitSurface(cpuScoreSurface, NULL, screenSurface, &cpuScoreTextRect);
+        SDL_FreeSurface(cpuScoreSurface);
+
 
         //pintar el surface
         SDL_UpdateWindowSurface(window);
@@ -122,6 +155,10 @@ bool sdl_init(){
     bool status = true;
     if(SDL_Init(SDL_INIT_VIDEO) != 0){
         SDL_Log("SDL_Init error: %s\n", SDL_GetError());
+        status = false;
+    }
+    if(TTF_Init() == -1){
+        printf("Error al inicializar SDL_TTF: %s", TTF_GetError());
         status = false;
     }
    return status;
